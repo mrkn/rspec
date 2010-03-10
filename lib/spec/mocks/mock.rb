@@ -42,8 +42,14 @@ module Spec
           return self if __mock_proxy.null_object?
           super(sym, *args, &block)
         rescue NameError
+          raise NoMethodError if conversion_method?(sym)
           __mock_proxy.raise_unexpected_message_error sym, *args
         end
+      end
+
+      CONVERSION_METHODS = %w(to_int to_ary to_str to_sym to_hash to_proc to_io).map {|m| m.intern }
+      def conversion_method?(sym)
+        CONVERSION_METHODS.include?(sym)
       end
 
       def extract_options(stubs_and_options)

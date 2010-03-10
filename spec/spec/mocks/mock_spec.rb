@@ -423,6 +423,23 @@ module Spec
         lambda { @mock.foobar }.should raise_error(MockExpectationError)
       end
 
+      %w(to_int to_ary to_str to_sym to_hash to_proc to_io).each do |meth|
+        context "without #{meth} method" do
+          it "should ignore when expected #{meth} message are received" do
+            @mock.should_receive meth
+            lambda do
+              @mock.__send__(meth.intern)
+            end.should_not raise_error
+          end
+
+          it "should raise NoMethodError when unexpected #{meth} message are received" do
+            lambda do
+              @mock.__send__(meth)
+            end.should raise_error(NoMethodError)
+          end
+        end
+      end
+
       it "should temporarily replace a method stub on a mock" do
         @mock.stub!(:msg).and_return(:stub_value)
         @mock.should_receive(:msg).with(:arg).and_return(:mock_value)
